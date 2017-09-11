@@ -26,7 +26,7 @@ class Shiba_inu(Dog):
         super().__init__(name)
     
     def voice(self):
-        return 'Wow wow'
+        return 'Wow so cool'
 
 class Cat(Pet):   
     def __init__(self, name):
@@ -62,5 +62,16 @@ class Fox(Pet):
         else:
             return True
 
-pet = Fox('Masha')
-print(pet.isCute())
+class Owner:
+    def __init__(self, animal):
+        self.animal = animal
+    def can_you_pet(self):
+        if self.animal.isCute() == True:
+             return 'You can pet %s and it says %s' % (self.animal.get_name(), self.animal.voice())
+        else:
+            return "%s don't touch me!" % (self.animal.voice())
+        
+pet = Fox('Juniper')
+person = Owner(pet)
+print(person.can_you_pet())
+        
