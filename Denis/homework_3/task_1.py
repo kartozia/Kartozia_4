@@ -159,13 +159,25 @@ class Experiment(TextStatistics, WikiParser):
 
 class TextStatistics_TestCase(unittest.TestCase):
     def test_trigram_zero(self):
-        stat = TextStatistics(['I like Python', 'But I dont know', 'How to write tests'])
-        self.assertEqual(("No ngrams needed"), stat.get_top_3grams(0))
+        stat = TextStatistics(['I like Python. Hello, world!', 'But I dont know', 'How to write tests'])
+        self.assertEqual(stat.get_top_3grams(0),("No ngrams needed"))
     def test_trigram_negative(self):
-        stat = TextStatistics(['I like Python', 'But I dont know', 'How to write tests'])
-        self.assertEqual(('Operation is not possible'), stat.get_top_3grams(-10))
+        stat = TextStatistics(['I like Python. Hello, world!', 'But I dont know', 'How to write tests'])
+        self.assertEqual(stat.get_top_3grams(-10), ('Operation is not possible'))
     def test_trigram_n(self):
-        stat = TextStatistics(['I like Python', 'But I dont know', 'How to write tests'])
-        self.assertEqual(['"i l" — 1', '" li" — 1', '"lik" — 1', '"ike" — 1', '"ke " — 1', '"e p" — 1', '" py" — 1', '"pyt" — 1', '"yth" — 1', '"tho" — 1', '"hon" — 1', '"but" — 1', '"ut " — 1', '"t i" — 1', '" i " — 1', '"i d" — 1', '" do" — 1', '"don" — 1', '"ont" — 1', '"nt " — 1']), stat.get_top_3grams(20))   
-if __name__ == "__main__":
-    unittest.main()
+        stat = TextStatistics(['I like Python. Hello, world!', 'But I dont know', 'How to write tests'])
+        result = ['"i l" — 1', '" li" — 1', '"lik" — 1', '"ike" — 1', '"ke " — 1', '"e p" — 1', '" py" — 1', '"pyt" — 1', '"yth" — 1', '"tho" — 1', '"hon" — 1', '"on." — 1', '"hel" — 1', '"ell" — 1', '"llo" — 1', '"lo," — 1', '"o, " — 1', '", w" — 1', '" wo" — 1', '"wor" — 1']
+        self.assertListEqual(stat.get_top_3grams(20), result)  
+    def test_except(self):
+        stat = TextStatistics(['I like Python. Hello, world!', 'But I dont know', 'How to write tests'])
+        try:
+            stat.get_top_3grams(0)
+        except YourException as ex:
+            self.assertTrue(True)
+        else:
+            self.assertFalse(False)
+            
+#assert almost Equal
+case = TextStatistics_TestCase()
+suite = TestLoader().loadTestsFromModule(case)
+TextTestRunner().run(suite)
