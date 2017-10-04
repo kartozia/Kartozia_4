@@ -37,7 +37,7 @@ class TextStatistics:
 
     def compute_idf(self, word, corpus):
         # почему-то не ищет в корпусе top_words
-        return math.log10(len(corpus)/sum([1.0 for i in corpus if word in i]))
+        return math.log(len(corpus)/sum([1.0 for i in corpus if word in i]))
     
     def make_ngrams(self,text):
         N = 3 # задаем длину n-граммы
