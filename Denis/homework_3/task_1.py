@@ -1,4 +1,5 @@
 import re
+from unittest import *
 import unittest
 import itertools
 import math
@@ -30,13 +31,12 @@ class WikiParser:
             article = wiki.article(title)
             arr.append(self.text_cleaning(article))
         return arr
-    
+
 class TextStatistics:
     def __init__(self, articles):
         self.articles = articles
 
     def compute_idf(self, word, corpus):
-        # почему-то не ищет в корпусе top_words
         return math.log(len(corpus)/sum([1.0 for i in corpus if word in i]))
     
     def make_ngrams(self,text):
@@ -52,27 +52,33 @@ class TextStatistics:
             return 'Operation is not possible'
         elif n>0:
             list_of_3grams_in_descending_order_by_freq = []
+            list_of_their_corresponding_freq = []
             freqs = collections.defaultdict(lambda: 0)
-            sentences = []
+            list_sent = []
             for article in self.articles:
-                sentences.append(sent_tokenize(article))
-            flat_list = [item for sublist in sentences for item in sublist]
-            for sent in flat_list:
-                for ngram in self.make_ngrams(sent.replace('\n', '').lower()):
+                sentences = article.split('.')
+                list_sent = [x for x in sentences]
+            for sent in list_sent:
+                for ngram in self.make_ngrams(sent):
                     if len(ngram)>2:
                         freqs[ngram] += 1
             if use_idf is True:
                 for ngram in freqs:
-                    freqs[ngram] = freqs[ngram]*self.compute_idf(ngram, sentences)
+                    freqs[ngram] = freqs[ngram]*self.compute_idf(ngram, list_sent)
                 for ngram in sorted(freqs, key=lambda n: freqs[n], reverse=True):
-                    list_of_3grams_in_descending_order_by_freq.append('"{}" — {}'.format(ngram, freqs[ngram]))
+                    list_of_3grams_in_descending_order_by_freq.append(ngram)
+                    list_of_their_corresponding_freq.append(freqs[ngram])  
             else:       
                 for ngram in sorted(freqs, key=lambda n: freqs[n], reverse=True):
-                    list_of_3grams_in_descending_order_by_freq.append('"{}" — {}'.format(ngram, freqs[ngram]))
-            return list_of_3grams_in_descending_order_by_freq[:n]
+                    list_of_3grams_in_descending_order_by_freq.append(ngram)
+                    list_of_their_corresponding_freq.append(freqs[ngram])  
+            return (list_of_3grams_in_descending_order_by_freq[:n], list_of_their_corresponding_freq[:n])
             
     def get_top_words(self, n, use_idf=False):
+        list_of_top_words_in_descending_order_by_freq = []
+        list_of_their_corresponding_freq = []
         freqs = collections.defaultdict(lambda: 0)
+        for_idf = collections.defaultdict(lambda: 0)
         list_of_top_words_in_descending_order_by_freq = []
         stop_words = ['on', 'in', 'at', 'near', 'over', 'under', 
                       'between', 'to', 'from','into', 'out', 'of', 
@@ -80,6 +86,7 @@ class TextStatistics:
                       'on', 'a', 'the', 'an']
         tokens = regexp_tokenize(' '.join(self.articles), r'[\w]*', gaps=False)        
         draft = ' '.join(tokens)
+        corpus_size = len(self.articles)
         remove_numbers = re.sub('[\d]{1,4}', '', draft)
         corpus = remove_numbers.split()
         new_corpus = []
@@ -91,15 +98,21 @@ class TextStatistics:
                 freqs[token] += 1
         if use_idf is True:
             for element in freqs:
-                #freqs[element] = freqs[element]*self.compute_idf(str(element), corpus = self.articles)
-                freqs[element] = self.compute_idf(str(element), corpus = self.articles)
-            for element in sorted(freqs, key=lambda n: freqs[n], reverse=True):
-                list_of_top_words_in_descending_order_by_freq.append('"{}" — {}'.format(element, freqs[element]))
-            return list_of_top_words_in_descending_order_by_freq   
-        else:
-            for element in sorted(freqs, key=lambda n: freqs[n], reverse=True):
-                list_of_top_words_in_descending_order_by_freq.append('"{}" — {}'.format(element, freqs[element]))
-            return list_of_top_words_in_descending_order_by_freq[:n]
+                for article in self.articles:
+                    if element in article:
+                        for_idf[element] += 1
+            for entity in for_idf:
+                for_idf[entity] = for_idf[entity]*(math.log(corpus_size/for_idf[entity]))
+                #for_idf[entity] = for_idf[entity] *(math.log(corpus_size/for_idf[entity]))
+            for entity in sorted(for_idf, key=lambda n: for_idf[n], reverse=True):
+                list_of_top_words_in_descending_order_by_freq.append(entity)
+                list_of_their_corresponding_freq.append(for_idf[entity])
+        else:       
+            for word in sorted(freqs, key=lambda n: freqs[n], reverse=True):
+                list_of_top_words_in_descending_order_by_freq.append(word)
+                list_of_their_corresponding_freq.append(freqs[word])
+                    
+        return (list_of_top_words_in_descending_order_by_freq[:n], list_of_their_corresponding_freq[:n])
 
 class Experiment(TextStatistics, WikiParser):
     def __init__(self):
@@ -107,55 +120,17 @@ class Experiment(TextStatistics, WikiParser):
     def show_result(self):
         corpus = self.get_articles(self.articles)
         freq = TextStatistics(corpus)
-        trigram = freq.get_top_3grams(20)
-        word_top = freq.get_top_words(20)
+        trigram = freq.get_top_3grams(20, use_idf=True)
+        print('Топ-20 3-грамм по корпусу текстов с idf:\n')
+        for ngram in zip(*trigram):
+            output = '"{}" — {}'.format(ngram[0], ngram[1])
+            print(output)
+        word_top = freq.get_top_words(20, use_idf=True)
+        print('\nТоп-20 слов по корпусу текстов с idf:\n')
+        for top in zip(*word_top):
+            output = '"{}" — {}'.format(top[0], top[1])
+            print(output)
         result = 'Топ-20 3-грамм по корпусу текстов:\n%s\n\nТоп-20 слов по корпусу текстов:\n%s\n\n'
-        print(result % ('\n'.join(trigram),'\n'.join(word_top)))
-##use_idf=False        
-##Топ-20 3-грамм по корпусу текстов:
-##" th" — 45453
-##"the" — 45183
-##"he " — 35084
-##"ion" — 24991
-##" in" — 24346
-##"ing" — 23431
-##" of" — 23249
-##"of " — 22270
-##"ed " — 22060
-##"tio" — 21973
-##" an" — 21730
-##"and" — 19394
-##"nd " — 18806
-##"on " — 17919
-##"ati" — 17812
-##"ng " — 17310
-##" co" — 16969
-##"in " — 16810
-##"al " — 15860
-##"ent" — 14666
-##
-##Топ-20 слов по корпусу текстов:
-##"and" — 16260
-##"is" — 8669
-##"that" — 4880
-##"are" — 4327
-##"language" — 3822
-##"or" — 3767
-##"s" — 3466
-##"be" — 3390
-##"it" — 2724
-##"this" — 2371
-##"which" — 2182
-##"can" — 1984
-##"not" — 1937
-##"was" — 1775
-##"speech" — 1759
-##"such" — 1746
-##"i" — 1727
-##"english" — 1712
-##"retrieved" — 1710
-##"p" — 1708
-
 
 class TextStatistics_TestCase(unittest.TestCase):
     def test_trigram_zero(self):
@@ -166,8 +141,8 @@ class TextStatistics_TestCase(unittest.TestCase):
         self.assertEqual(stat.get_top_3grams(-10), ('Operation is not possible'))
     def test_trigram_n(self):
         stat = TextStatistics(['I like Python. Hello, world!', 'But I dont know', 'How to write tests'])
-        result = ['"i l" — 1', '" li" — 1', '"lik" — 1', '"ike" — 1', '"ke " — 1', '"e p" — 1', '" py" — 1', '"pyt" — 1', '"yth" — 1', '"tho" — 1', '"hon" — 1', '"on." — 1', '"hel" — 1', '"ell" — 1', '"llo" — 1', '"lo," — 1', '"o, " — 1', '", w" — 1', '" wo" — 1', '"wor" — 1']
-        self.assertListEqual(stat.get_top_3grams(20), result)  
+        result = ['How', 'ow ', 'w t', ' to', 'to ', 'o w', ' wr', 'wri', 'rit', 'ite', 'te ', 'e t', ' te', 'tes', 'est', 'sts']
+        self.assertListEqual(stat.get_top_3grams(20)[0], result)  
     def test_except(self):
         stat = TextStatistics(['I like Python. Hello, world!', 'But I dont know', 'How to write tests'])
         try:
