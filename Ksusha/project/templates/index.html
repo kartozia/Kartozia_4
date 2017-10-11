@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Search page</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
+<body>
+<form>
+Your query: <input type="text" name="query"></input><br>
+<button type="submit">Search</button>
+</form>
+<h4>Результат поиска:</h4>
+			<p class="info"> 
+			<ol class="demo">
+			 {% for element in links %} 
+				<li>{{ element | safe}}</li>
+				{% endfor %} <br />
+			</ol>
+			</p>
+</body>
+</html>
