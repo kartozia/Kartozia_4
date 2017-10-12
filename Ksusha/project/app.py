@@ -95,10 +95,11 @@ def search(query):
 
 app = Flask(__name__)
 
-@app.route('/')
+
+@app.route('/', methods=['get', 'post'])
 def index():
-    if request.args:
-        query = request.args['query']
+    if request.form:
+        query = request.form['query']
         links = search(query)
         return render_template('index.html',links=links)
     return render_template('index.html',links=[])

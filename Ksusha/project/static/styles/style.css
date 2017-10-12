@@ -1,0 +1,63 @@
+    body{
+      background-color: white;
+      padding-top: 60px;
+      padding-left: 150px;
+      padding-right: 50px;
+      line-height: 1.5;
+	  font-family: "helvetica";
+	  font-size: 16px;
+    }
+    
+    .navbar {
+	  margin-bottom: 0;
+      border-radius: 0;
+      opacity: 0.5;
+      background-color: black;
+	  font-family: "helvetica";
+	  font-size: 16px;
+	  padding-bottom: 0px;
+	  line-height: 30px;
+}
+
+.navbar-brand
+{
+     margin-left:100px !important;
+}
+	.btn-default {
+        background-color: #7F7F7F;
+        color: white;
+        border: 0px;
+        margin-bottom: 0px;
+        border-radius: 3px;
+    }
+    .btn-default:hover,
+    .btn-default:focus,
+    .btn-default:active    {
+        background-color: #EF525D;
+        color: white;
+    }
+    
+    /* unvisited link */
+a:link {
+    color: #7F7F7F;
+}
+
+/* visited link */
+a:visited {
+    color: #EF525D;
+}
+
+/* mouse over link */
+a:hover {
+    color: #EF525D;
+}
+
+/* selected link */
+a:active {
+    color: blue;
+}
+
+ol.demo {
+    margin: 0;
+    padding: 0;
+}
